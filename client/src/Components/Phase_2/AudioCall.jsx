@@ -29,6 +29,7 @@ const AudioCall = ({
   const [callEnded, setCallEnded] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [callDuration, setCallDuration] = useState(0);
+  const [callStarted, setCallStarted] = useState(false);
 
   const connectionRef = useRef();
   const socket = getSocket();
@@ -63,6 +64,9 @@ const AudioCall = ({
           setReceivingCall(true);
           setCaller(recipientId);
           setCallerSignal(initialSignalData);
+        } else if (isInitiator && stream) {
+          // Auto-initiate call for outgoing calls
+          setTimeout(() => callUser(), 500);
         }
 
         const handleCallAccepted = (signal) => {
@@ -71,7 +75,9 @@ const AudioCall = ({
           if (connectionRef.current) {
             connectionRef.current.signal(signal);
           }
-          startCallTimer();
+          if (!callStarted) {
+            startCallTimer();
+          }
         };
 
         const handleCallEnded = () => {
@@ -129,6 +135,9 @@ const AudioCall = ({
 
   const callUser = () => {
     console.log('Initiating call to:', recipientId);
+    setCallStarted(true);
+    startCallTimer(); // Start timer when call is initiated
+    
     const peer = new Peer({
       initiator: true,
       trickle: false,
@@ -173,7 +182,10 @@ const AudioCall = ({
 
     peer.signal(callerSignal);
     connectionRef.current = peer;
-    startCallTimer();
+    if (!callStarted) {
+      setCallStarted(true);
+      startCallTimer();
+    }
   };
 
   const endCall = () => {
@@ -182,6 +194,7 @@ const AudioCall = ({
     setCallAccepted(false);
     setReceivingCall(false);
     setCallDuration(0);
+    setCallStarted(false);
     
     if (connectionRef.current) {
       connectionRef.current.destroy();
@@ -229,7 +242,9 @@ const AudioCall = ({
           </div>
           <h3 className="text-xl font-bold mb-2">{recipientName}</h3>
           <p className="opacity-90">
-            {callAccepted ? formatDuration(callDuration) : receivingCall ? 'Incoming call...' : 'Connecting...'}
+            {callAccepted ? `Connected - ${formatDuration(callDuration)}` : 
+             receivingCall ? 'Incoming call...' : 
+             callStarted ? `Calling - ${formatDuration(callDuration)}` : 'Connecting...'}
           </p>
         </div>
 
