@@ -1,0 +1,140 @@
+const Session = require('../models/Session');
+const Message = require('../models/ChatSession');
+const VisibilityMatrix=require('../models/visibilityMatrix')
+// Create or get existing session
+exports.createOrGetSession = async (req, res) => {
+  try {
+    const { userId, agencyId } = req.body;
+
+    if (!userId || !agencyId) {
+      return res.status(400).json({ error: 'userId and agencyId are required' });
+    }
+
+    let session = await Session.findOne({ userId, agencyId });
+
+    const isNewSession = !session;
+
+    if (isNewSession) {
+      session = await Session.create({ userId, agencyId });
+
+      // ✅ Step 1: Get or create matrix
+      let matrix = await VisibilityMatrix.findOne({ agencyId });
+      if (!matrix) {
+        matrix = new VisibilityMatrix({ agencyId, matrix: new Map(), publiclyVisibleUsers: [] });
+      }
+
+      const fromKey = String(userId);
+
+      if (!matrix.matrix.has(fromKey)) {
+        matrix.matrix.set(fromKey, new Map());
+      }
+
+      const innerMap = matrix.matrix.get(fromKey);
+
+      // ✅ Step 2: Loop through public profiles and allow access
+      for (const profileId of matrix.publiclyVisibleUsers) {
+        const toKey = String(profileId);
+        innerMap.set(toKey, true);
+      }
+
+      matrix.matrix.set(fromKey, innerMap);
+      matrix.updatedAt = new Date();
+      await matrix.save();
+    }
+
+    // Optional: populate if frontend needs user/agency names/images
+    session = await Session.findById(session._id).populate('userId agencyId');
+
+    res.status(200).json(session);
+  } catch (err) {
+    console.error('Session error:', err);
+    res.status(500).json({ error: 'Internal Server Error while creating/fetching session' });
+  }
+};
+
+
+// Get sessions for user or agency
+exports.getSessionsByRole = async (req, res) => {
+  try {
+    const { role, id } = req.params;
+    const filter = role === 'user' ? { userId: id } : { agencyId: id };
+    const sessions = await Session.find(filter).populate('agencyId userId').lean();
+    res.json(sessions);
+  } catch (err) {
+    res.status(500).json({ error: 'Error fetching sessions' });
+  }
+};
+
+// Get all messages in a session
+exports.getMessages = async (req, res) => {
+  try {
+    const messages = await Message.find({ sessionId: req.params.sessionId }).sort('createdAt');
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ error: 'Error fetching messages' });
+  }
+};
+
+// Get sessions with unread count for agency
+exports.getAgencyUnreadMessages = async (req, res) => {
+  try {
+    const { role, id } = req.params;
+    const filter = role === 'user' ? { userId: id } : { agencyId: id };
+    const sessions = await Session.find(filter)
+      .populate('userId agencyId')
+      .lean();
+    // Attach unread count to each session
+    const sessionsWithUnread = await Promise.all(
+      sessions.map(async (session) => {
+        const unreadCount = await Message.countDocuments({
+          sessionId: session._id,
+          sender: role === 'user' ? 'agency' : 'user',        // ✅ only count user's unread messages
+          isRead: false,
+        });
+        return { ...session, unreadCount };
+      })
+    );
+
+    res.json(sessionsWithUnread);
+  } catch (err) {
+    console.error('Error fetching sessions with unread:', err);
+    res.status(500).json({ error: 'Failed to fetch sessions with unread count' });
+  }
+};
+
+// Send a new message
+exports.sendMessage = async (req, res) => {
+  try {
+    // const images = req.files ? req.files.map(file => file.path) : [];
+    const files = req.files ? req.files.map(file => ({
+      path: file.path,
+      mimetype: file.mimetype,
+      originalname: file.originalname
+    })) : [];
+
+    const messageData = {
+      ...req.body,
+      file: files
+    };
+
+    const msg = await Message.create(messageData);
+    req.io.to(req.body.sessionId.toString()).emit('newMessage', msg);
+    res.json(msg);
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({ error: 'Error sending message' });
+  }
+};
+
+exports.markMessagesAsRead = async (req, res) => {
+  const { sessionId, reader } = req.body;
+  const opposite = reader === 'agency' ? 'user' : 'agency';
+
+ const data= await Message.updateMany(
+    { sessionId, sender: opposite, isRead: false },
+    { $set: { isRead: true } }
+  );
+
+  res.json({ success: true, data });
+};
+
