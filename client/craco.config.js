@@ -1,4 +1,13 @@
+
 module.exports = {
+  style: {
+    postcss: {
+      plugins: [
+        require('tailwindcss'),
+        require('autoprefixer'),
+      ],
+    },
+  },
   webpack: {
     configure: (webpackConfig) => {
       webpackConfig.resolve.fallback = {
@@ -21,6 +30,17 @@ module.exports = {
         "_stream_duplex": require.resolve("stream-browserify/lib/_stream_duplex"),
         "_stream_transform": require.resolve("stream-browserify/lib/_stream_transform"),
       };
+      
+      // Add ProvidePlugin for global polyfills
+      const webpack = require('webpack');
+      webpackConfig.plugins = [
+        ...webpackConfig.plugins,
+        new webpack.ProvidePlugin({
+          Buffer: ['buffer', 'Buffer'],
+          process: 'process/browser',
+        }),
+      ];
+      
       return webpackConfig;
     },
   },

@@ -6,7 +6,7 @@ if (typeof global === 'undefined') {
 
 if (typeof process === 'undefined') {
   window.process = {
-    env: { NODE_ENV: process?.env?.NODE_ENV || 'development' },
+    env: { NODE_ENV: 'development' },
     nextTick: function(fn) { setTimeout(fn, 0); },
     browser: true,
     version: '',
@@ -14,20 +14,16 @@ if (typeof process === 'undefined') {
   };
 }
 
-// Buffer polyfill if needed
+// Buffer polyfill - will be resolved by webpack
 if (typeof Buffer === 'undefined') {
-  window.Buffer = require('buffer').Buffer;
+  try {
+    const { Buffer } = require('buffer');
+    window.Buffer = Buffer;
+  } catch (e) {
+    // Fallback if buffer polyfill fails
+    console.warn('Buffer polyfill not available');
+  }
 }
 
-// Stream polyfill for WebRTC/simple-peer
-if (typeof require !== 'undefined') {
-  window.process.browser = true;
-  window.stream = require('stream');
-  
-  // Additional stream polyfills
-  const { Readable, Writable, Transform, Duplex } = require('stream');
-  window.Readable = Readable;
-  window.Writable = Writable;
-  window.Transform = Transform;
-  window.Duplex = Duplex;
-}
+// These will be resolved by webpack fallbacks in craco.config.js
+// No need to manually require them here
