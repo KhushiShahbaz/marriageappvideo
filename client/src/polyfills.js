@@ -18,3 +18,16 @@ if (typeof process === 'undefined') {
 if (typeof Buffer === 'undefined') {
   window.Buffer = require('buffer').Buffer;
 }
+
+// Stream polyfill for WebRTC/simple-peer
+if (typeof require !== 'undefined') {
+  window.process.browser = true;
+  window.stream = require('stream');
+  
+  // Additional stream polyfills
+  const { Readable, Writable, Transform, Duplex } = require('stream');
+  window.Readable = Readable;
+  window.Writable = Writable;
+  window.Transform = Transform;
+  window.Duplex = Duplex;
+}
