@@ -24,233 +24,240 @@ import AgencyCandidateList from "../Pages/Phase_2/AgencyCandidateList";
 import PublicProfileView from "../Pages/Phase_2/PublicProfileView";
 import AudioCallPage from "../Pages/Phase_2/AudioCallPage";
 import VideoCallPage from "../Pages/Phase_2/VideoCallPage";
+import RootLayout from "../Components/RootLayout";
 
 export const router = createBrowserRouter([
   {
-    path: "/public/user/:token",
-    element: <PublicProfileView />,
-  },
-  {
-    path: "/audio-call",
-    element: (
-      <ProtectedRoute allowedRoles={['user', 'agency']}>
-        <AudioCallPage />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/video-call",
-    element: (
-      <ProtectedRoute allowedRoles={['user', 'agency']}>
-        <VideoCallPage />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/home",
-    element: (
-      <ProtectedRoute allowedRoles={['user']}>
-        <UserLayout>
-        <MatchmakingHome />
-        </UserLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
     path: "/",
-    element: <Home />,
-  },
+    element: <RootLayout />,
+    children: [
   {
-    path: "/match",
-    element: (
-      <ProtectedRoute allowedRoles={['user']}>
-        <RishtaDhondoHome />
-      </ProtectedRoute>
-    )
-  },
+        path: "public/user/:token",
+        element: <PublicProfileView />,
+      },
+      {
+        path: "audio-call",
+        element: (
+          <ProtectedRoute allowedRoles={['user', 'agency']}>
+            <AudioCallPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "video-call",
+        element: (
+          <ProtectedRoute allowedRoles={['user', 'agency']}>
+            <VideoCallPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "home",
+        element: (
+          <ProtectedRoute allowedRoles={['user']}>
+            <UserLayout>
+            <MatchmakingHome />
+            </UserLayout>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        index: true,
+        element: <Home />,
+      },
   {
-    path: "/agency/users",
-    element: (
-      <ProtectedRoute allowedRoles={['agency']}>
-        <OwnerLayout >
-          <AgencyCandidateList/>
-          </OwnerLayout>
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/user/addProfile",
-    element: (
-      <ProtectedRoute allowedRoles={['user']}>
-        <UserLayout>
-          <UserProfileForm />
-        </UserLayout>
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/user/addProfile/:id",
-    element: (
-      <ProtectedRoute allowedRoles={['user']}>
-        <UserLayout>
-          <UserProfileForm />
-        </UserLayout>
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/agency/addProfile",
-    element: (
-      <ProtectedRoute allowedRoles={['agency']}>
-        <OwnerLayout>
-          <AgencyProfile />
-        </OwnerLayout>
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/agency",
-    element: (
-      <ProtectedRoute allowedRoles={['agency']}>
-        <OwnerLayout>
-          <AgencyDashboard />
-        </OwnerLayout>
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/agency/addProfile/:id",
-    element: (
-      <ProtectedRoute allowedRoles={['agency']}>
-        <OwnerLayout>
-          <AgencyProfile />
-        </OwnerLayout>
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/user/:id",
-    element: (
-      <ProtectedRoute allowedRoles={['user']}>
-        <UserLayout>
-          <UserProfileDisplay />
-        </UserLayout>
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/userDetail/:id",
-    element: (
-      <ProtectedRoute allowedRoles={['agency']}>
-        <OwnerLayout>
-          <UserProfileDisplay />
-        </OwnerLayout>
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/agency/profile",
-    element: (
-      <ProtectedRoute allowedRoles={['agency']}>
-        <OwnerLayout>
-          <AgencyProfileDisplay />
-        </OwnerLayout>
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/user/agencies",
-    element: (
-      <ProtectedRoute allowedRoles={['user']}>
-        <UserLayout>
-          <AgencyListing />
-        </UserLayout>
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/user/agencies/:id",
-    element: (
-      <ProtectedRoute allowedRoles={['user']}>
-        <UserLayout>
-          <AgencyDetail />
-        </UserLayout>
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/match-making-form/:token",
-    element: (
-      <ProtectedRoute allowedRoles={['user']}>
-        <UserLayout>
-          <AgencyDetail />
-        </UserLayout>
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/:id",
-    element: (
-      <ProtectedRoute allowedRoles={["hall-owner", "manager", "admin"]}>
-        <OwnerLayout>
-          <OwnerDashboard />
-        </OwnerLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/rishta",
-    element: (
-      <ProtectedRoute allowedRoles={["user"]}>
-        <UserLayout>
-          <UserProfileForm />
-        </UserLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/:id/halls",
-    element: (
-      <ProtectedRoute allowedRoles={["hall-owner", "manager", "admin"]}>
-        <OwnerLayout>
-          <OwnerHalls />
-        </OwnerLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: '/:id/halls/:id',
-    element: (
-      <ProtectedRoute allowedRoles={["hall-owner", "manager", "admin"]}>
-        <HallDetail />
-      </ProtectedRoute>)
-    ,
-  },
-  {
-    path: '/:id/my-bookings',
-    element: (
-      <ProtectedRoute allowedRoles={["hall-owner", "manager", "admin"]}>
-        <MyBookings />
-      </ProtectedRoute>),
-  },
-  {
-    path: '/search-results',
-    element: <SearchResults />,
-  },
-  {
-    path: '/public-halls/:id',
-    element: <PublicHallDetail />,
-  },
-  {
-    path: '/custom-booking/:token',
-    element: <CustomDealBooking />,
-  },
-  {
-    path: '/:id/associate-manager',
-    element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
-        <AdminAssignManagerPage />
-      </ProtectedRoute>
-    ),
-  },
+        path: "match",
+        element: (
+          <ProtectedRoute allowedRoles={['user']}>
+            <RishtaDhondoHome />
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "agency/users",
+        element: (
+          <ProtectedRoute allowedRoles={['agency']}>
+            <OwnerLayout >
+              <AgencyCandidateList/>
+              </OwnerLayout>
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "user/addProfile",
+        element: (
+          <ProtectedRoute allowedRoles={['user']}>
+            <UserLayout>
+              <UserProfileForm />
+            </UserLayout>
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "user/addProfile/:id",
+        element: (
+          <ProtectedRoute allowedRoles={['user']}>
+            <UserLayout>
+              <UserProfileForm />
+            </UserLayout>
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "agency/addProfile",
+        element: (
+          <ProtectedRoute allowedRoles={['agency']}>
+            <OwnerLayout>
+              <AgencyProfile />
+            </OwnerLayout>
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "agency",
+        element: (
+          <ProtectedRoute allowedRoles={['agency']}>
+            <OwnerLayout>
+              <AgencyDashboard />
+            </OwnerLayout>
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "agency/addProfile/:id",
+        element: (
+          <ProtectedRoute allowedRoles={['agency']}>
+            <OwnerLayout>
+              <AgencyProfile />
+            </OwnerLayout>
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "user/:id",
+        element: (
+          <ProtectedRoute allowedRoles={['user']}>
+            <UserLayout>
+              <UserProfileDisplay />
+            </UserLayout>
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "userDetail/:id",
+        element: (
+          <ProtectedRoute allowedRoles={['agency']}>
+            <OwnerLayout>
+              <UserProfileDisplay />
+            </OwnerLayout>
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "agency/profile",
+        element: (
+          <ProtectedRoute allowedRoles={['agency']}>
+            <OwnerLayout>
+              <AgencyProfileDisplay />
+            </OwnerLayout>
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "user/agencies",
+        element: (
+          <ProtectedRoute allowedRoles={['user']}>
+            <UserLayout>
+              <AgencyListing />
+            </UserLayout>
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "user/agencies/:id",
+        element: (
+          <ProtectedRoute allowedRoles={['user']}>
+            <UserLayout>
+              <AgencyDetail />
+            </UserLayout>
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "match-making-form/:token",
+        element: (
+          <ProtectedRoute allowedRoles={['user']}>
+            <UserLayout>
+              <AgencyDetail />
+            </UserLayout>
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: ":id",
+        element: (
+          <ProtectedRoute allowedRoles={["hall-owner", "manager", "admin"]}>
+            <OwnerLayout>
+              <OwnerDashboard />
+            </OwnerLayout>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "rishta",
+        element: (
+          <ProtectedRoute allowedRoles={["user"]}>
+            <UserLayout>
+              <UserProfileForm />
+            </UserLayout>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: ":id/halls",
+        element: (
+          <ProtectedRoute allowedRoles={["hall-owner", "manager", "admin"]}>
+            <OwnerLayout>
+              <OwnerHalls />
+            </OwnerLayout>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: ':id/halls/:id',
+        element: (
+          <ProtectedRoute allowedRoles={["hall-owner", "manager", "admin"]}>
+            <HallDetail />
+          </ProtectedRoute>)
+        ,
+      },
+      {
+        path: ':id/my-bookings',
+        element: (
+          <ProtectedRoute allowedRoles={["hall-owner", "manager", "admin"]}>
+            <MyBookings />
+          </ProtectedRoute>),
+      },
+      {
+        path: 'search-results',
+        element: <SearchResults />,
+      },
+      {
+        path: 'public-halls/:id',
+        element: <PublicHallDetail />,
+      },
+      {
+        path: 'custom-booking/:token',
+        element: <CustomDealBooking />,
+      },
+      {
+        path: ':id/associate-manager',
+        element: (
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminAssignManagerPage />
+          </ProtectedRoute>
+        ),
+      },
+    ]
+  }
 ]);
