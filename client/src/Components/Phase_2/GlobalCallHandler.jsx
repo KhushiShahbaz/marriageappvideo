@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSocket } from '../../socket';
@@ -38,7 +37,7 @@ const GlobalCallHandler = () => {
         signalData: data.signalData,
         callType: data.callType || 'audio' // audio or video
       });
-      
+
       // Play ringtone
       if (audio) {
         audio.play().catch(console.error);
@@ -48,19 +47,19 @@ const GlobalCallHandler = () => {
     const handleCallEnded = () => {
       console.log('GLOBAL: Call ended');
       setIncomingCall(null);
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
+      // if (audio) {
+      //   audio.pause();
+      //   audio.currentTime = 0;
+      // }
     };
 
     const handleCallAccepted = () => {
       console.log('GLOBAL: Call accepted by another device');
       setIncomingCall(null);
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
+      // if (audio) {
+      //   audio.pause();
+      //   audio.currentTime = 0;
+      // }
     };
 
     // Remove existing listeners
@@ -79,21 +78,21 @@ const GlobalCallHandler = () => {
         socket.off('callEnded');
         socket.off('callAccepted');
       }
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
+      // if (audio) {
+      //   audio.pause();
+      //   audio.currentTime = 0;
+      // }
     };
   }, [socket, user]);
 
   const acceptCall = () => {
     if (!incomingCall) return;
 
-    // Stop ringtone
-    if (callSound) {
-      callSound.pause();
-      callSound.currentTime = 0;
-    }
+    // Stop ringtone - disabled for now
+    // if (callSound) {
+    //   callSound.pause();
+    //   callSound.currentTime = 0;
+    // }
 
     // Navigate to appropriate call page with call data
     const callData = {
@@ -119,11 +118,11 @@ const GlobalCallHandler = () => {
   const rejectCall = () => {
     if (!incomingCall) return;
 
-    // Stop ringtone
-    if (callSound) {
-      callSound.pause();
-      callSound.currentTime = 0;
-    }
+    // Stop ringtone - disabled for now
+    // if (callSound) {
+    //   callSound.pause();
+    //   callSound.currentTime = 0;
+    // }
 
     // Notify caller of rejection
     socket.emit('rejectCall', { to: incomingCall.callerId });
