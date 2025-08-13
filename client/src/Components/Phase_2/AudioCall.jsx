@@ -286,8 +286,7 @@ const AudioCall = ({
           <h3 className="text-xl font-bold mb-2">{recipientName}</h3>
           <p className="opacity-90">
             {callAccepted ? `Connected - ${formatDuration(callDuration)}` : 
-             receivingCall ? 'Incoming call...' : 
-             callStarted ? `Calling - ${formatDuration(callDuration)}` : 'Connecting...'}
+             receivingCall ? 'Incoming call...' : 'Connecting...'}
           </p>
         </div>
 

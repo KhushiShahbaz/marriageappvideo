@@ -562,8 +562,8 @@ const AgencyChat = ({ isAdmin, agencyId, userId, disableSend }) => {
       <VideoCall
         isOpen={videoCallOpen}
         onClose={() => setVideoCallOpen(false)}
-        recipientId={selectedSession?.userId?._id}
-        recipientName={selectedSession?.userId?.name}
+        recipientId={user.role==='user'?selectedSession?.agencyId?._id:selectedSession?.userId?._id}
+        recipientName={user.role==='user'?selectedSession?.agencyId?.name:selectedSession?.userId?.name}
         currentUserId={user?.id}
         isInitiator={true}
       />
@@ -572,8 +572,8 @@ const AgencyChat = ({ isAdmin, agencyId, userId, disableSend }) => {
       <AudioCall
         isOpen={audioCallOpen}
         onClose={() => setAudioCallOpen(false)}
-        recipientId={selectedSession?.userId?._id}
-        recipientName={selectedSession?.userId?.name}
+        recipientId={user.role==='user'?selectedSession?.agencyId?._id:selectedSession?.userId?._id}
+        recipientName={user.role==='user'?selectedSession?.agencyId?.name:selectedSession?.userId?.name}
         currentUserId={user?.id}
         isInitiator={true}
       />
