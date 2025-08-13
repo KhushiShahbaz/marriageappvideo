@@ -69,13 +69,33 @@ const VideoCall = ({
     }
 
     return () => {
+      // Clean up media stream
       if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        try {
+          stream.getTracks().forEach(track => {
+            if (track.readyState !== 'ended') {
+              track.stop();
+            }
+          });
+        } catch (error) {
+          console.log('Error stopping tracks in cleanup:', error);
+        }
       }
+      
+      // Clean up socket listeners
       if (socket) {
         socket.off('callUser');
         socket.off('callAccepted');
         socket.off('callEnded');
+      }
+      
+      // Clean up peer connection
+      if (connectionRef.current) {
+        try {
+          connectionRef.current.destroy();
+        } catch (error) {
+          console.log('Error destroying peer in cleanup:', error);
+        }
       }
     };
   }, [isOpen]);
@@ -136,15 +156,35 @@ const VideoCall = ({
     setCallAccepted(false);
     setReceivingCall(false);
     
+    // Clean up peer connection
     if (connectionRef.current) {
-      connectionRef.current.destroy();
+      try {
+        connectionRef.current.destroy();
+      } catch (error) {
+        console.log('Peer already destroyed');
+      }
+      connectionRef.current = null;
     }
     
+    // Clean up media stream
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      try {
+        stream.getTracks().forEach(track => {
+          if (track.readyState !== 'ended') {
+            track.stop();
+          }
+        });
+      } catch (error) {
+        console.log('Error stopping tracks:', error);
+      }
+      setStream(null);
     }
     
-    socket.emit('endCall', { to: recipientId });
+    // Notify peer
+    if (socket && recipientId) {
+      socket.emit('endCall', { to: recipientId });
+    }
+    
     onClose();
   };
 

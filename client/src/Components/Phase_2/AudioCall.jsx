@@ -98,16 +98,38 @@ const AudioCall = ({
     }
 
     return () => {
+      // Clean up media stream
       if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        try {
+          stream.getTracks().forEach(track => {
+            if (track.readyState !== 'ended') {
+              track.stop();
+            }
+          });
+        } catch (error) {
+          console.log('Error stopping tracks in cleanup:', error);
+        }
       }
+      
+      // Clean up socket listeners
       if (socket) {
         socket.off('callUser');
         socket.off('callAccepted');
         socket.off('callEnded');
       }
+      
+      // Clean up timer
       if (callTimerRef.current) {
         clearInterval(callTimerRef.current);
+      }
+      
+      // Clean up peer connection
+      if (connectionRef.current) {
+        try {
+          connectionRef.current.destroy();
+        } catch (error) {
+          console.log('Error destroying peer in cleanup:', error);
+        }
       }
     };
   }, [isOpen, currentUserId]);
@@ -196,21 +218,42 @@ const AudioCall = ({
     setCallDuration(0);
     setCallStarted(false);
     
+    // Clean up peer connection
     if (connectionRef.current) {
-      connectionRef.current.destroy();
+      try {
+        connectionRef.current.destroy();
+      } catch (error) {
+        console.log('Peer already destroyed');
+      }
+      connectionRef.current = null;
     }
     
+    // Clean up media stream
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      try {
+        stream.getTracks().forEach(track => {
+          if (track.readyState !== 'ended') {
+            track.stop();
+          }
+        });
+      } catch (error) {
+        console.log('Error stopping tracks:', error);
+      }
+      setStream(null);
     }
     
+    // Clear timer
     if (callTimerRef.current) {
       clearInterval(callTimerRef.current);
+      callTimerRef.current = null;
     }
     
     // Notify the peer that call ended
     const targetUser = callAccepted || receivingCall ? (caller || recipientId) : recipientId;
-    socket.emit('endCall', { to: targetUser });
+    if (socket && targetUser) {
+      socket.emit('endCall', { to: targetUser });
+    }
+    
     onClose();
   };
 

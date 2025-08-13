@@ -24,10 +24,10 @@ const GlobalCallHandler = () => {
     // Register user when component mounts
     socket.emit('register', user._id);
 
-    // Create call sound
-    const audio = new Audio('/call-ringtone.mp3'); // You'll need to add this file
-    audio.loop = true;
-    setCallSound(audio);
+    // Disable ringtone for now to prevent errors
+    // const audio = new Audio('/call-ringtone.mp3');
+    // audio.loop = true;
+    // setCallSound(audio);
 
     const handleIncomingCall = (data) => {
       console.log('GLOBAL: Incoming call received:', data);
@@ -38,10 +38,10 @@ const GlobalCallHandler = () => {
         callType: data.callType || 'audio' // audio or video
       });
 
-      // Play ringtone
-      if (audio) {
-        audio.play().catch(console.error);
-      }
+      // Ringtone disabled for now
+      // if (audio) {
+      //   audio.play().catch(console.error);
+      // }
     };
 
     const handleCallEnded = () => {
