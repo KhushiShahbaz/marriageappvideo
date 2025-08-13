@@ -17,7 +17,8 @@ const AudioCall = ({
   recipientId, 
   recipientName, 
   currentUserId,
-  isInitiator = false 
+  isInitiator = false,
+  initialSignalData = null
 }) => {
     console.log(recipientId)
   const [stream, setStream] = useState(null);
@@ -56,6 +57,13 @@ const AudioCall = ({
           setCaller(data.from);
           setCallerSignal(data.signalData);
         };
+
+        // Handle initial signal data if this is an incoming call
+        if (initialSignalData && !isInitiator) {
+          setReceivingCall(true);
+          setCaller(recipientId);
+          setCallerSignal(initialSignalData);
+        }
 
         const handleCallAccepted = (signal) => {
           console.log('Call accepted');

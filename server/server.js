@@ -169,7 +169,10 @@ socket.on('callUser', (data) => {
     
     // Notify caller
     if (to) {
-      io.to(to).emit('callRejected');
+      const targetUser = connectedUsers.get(to);
+      if (targetUser) {
+        io.to(targetUser.socketId).emit('callRejected');
+      }
     }
   });
 

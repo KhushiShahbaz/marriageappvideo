@@ -22,11 +22,29 @@ import MatchmakingHome from "../Pages/Phase_2/Home";
 import AgencyDetail from "../Pages/Phase_2/AgencyDetail";
 import AgencyCandidateList from "../Pages/Phase_2/AgencyCandidateList";
 import PublicProfileView from "../Pages/Phase_2/PublicProfileView";
+import AudioCallPage from "../Pages/Phase_2/AudioCallPage";
+import VideoCallPage from "../Pages/Phase_2/VideoCallPage";
 
 export const router = createBrowserRouter([
   {
     path: "/public/user/:token",
     element: <PublicProfileView />,
+  },
+  {
+    path: "/audio-call",
+    element: (
+      <ProtectedRoute allowedRoles={['user', 'agency']}>
+        <AudioCallPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/video-call",
+    element: (
+      <ProtectedRoute allowedRoles={['user', 'agency']}>
+        <VideoCallPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/home",
