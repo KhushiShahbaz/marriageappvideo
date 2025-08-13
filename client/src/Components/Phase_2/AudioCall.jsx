@@ -33,20 +33,8 @@ const AudioCall = ({
   const socket = getSocket();
   const callTimerRef = useRef();
   useEffect(() => {
-    if (socket) {
-      console.log('Setting up call listeners for socket:', socket.id);
-      
-      socket.on('callUser', (data) => {
-        console.log('INCOMING CALL DATA:', data);
-        setReceivingCall(true);
-        setCaller(data.from);
-        setCallerSignal(data.signal);
-      });
-    }
-  }, [socket]);
-  
-  useEffect(() => {
     if (isOpen) {
+      // Get media stream
       navigator.mediaDevices.getUserMedia({ 
         video: false, 
         audio: true 
@@ -56,22 +44,42 @@ const AudioCall = ({
         console.error('Error accessing microphone:', err);
       });
 
-      if (socket) {
+      // Register current user with their ID
+      if (socket && currentUserId) {
+        console.log('Registering user:', currentUserId);
+        socket.emit('register', currentUserId);
 
-        socket.on('callUser', (data) => {
+        // Set up call event listeners
+        const handleIncomingCall = (data) => {
+          console.log('INCOMING CALL DATA:', data);
           setReceivingCall(true);
           setCaller(data.from);
-          setCallerSignal(data.signal);
-        });
-        socket.on('callAccepted', (signal) => {
-          setCallAccepted(true);
-          connectionRef.current.signal(signal);
-          startCallTimer();
-        });
+          setCallerSignal(data.signalData);
+        };
 
-        socket.on('callEnded', () => {
+        const handleCallAccepted = (signal) => {
+          console.log('Call accepted');
+          setCallAccepted(true);
+          if (connectionRef.current) {
+            connectionRef.current.signal(signal);
+          }
+          startCallTimer();
+        };
+
+        const handleCallEnded = () => {
+          console.log('Call ended by peer');
           endCall();
-        });
+        };
+
+        // Remove existing listeners first
+        socket.off('callUser');
+        socket.off('callAccepted');
+        socket.off('callEnded');
+
+        // Add new listeners
+        socket.on('callUser', handleIncomingCall);
+        socket.on('callAccepted', handleCallAccepted);
+        socket.on('callEnded', handleCallEnded);
       }
     }
 
@@ -88,7 +96,7 @@ const AudioCall = ({
         clearInterval(callTimerRef.current);
       }
     };
-  }, [isOpen]);
+  }, [isOpen, currentUserId]);
 
   const startCallTimer = () => {
     callTimerRef.current = setInterval(() => {
@@ -112,6 +120,7 @@ const AudioCall = ({
   }, []);
 
   const callUser = () => {
+    console.log('Initiating call to:', recipientId);
     const peer = new Peer({
       initiator: true,
       trickle: false,
@@ -119,18 +128,25 @@ const AudioCall = ({
     });
   
     peer.on('signal', (data) => {
+      console.log('Sending call signal to:', recipientId);
       socket.emit('callUser', {
         userToCall: recipientId,
         signalData: data,
-        from: currentUserId,  // ✅ Use user ID, not socket.id
-        callerSocketId: socket.id
+        from: currentUserId,
+        callerName: 'You' // You can pass the actual caller name if available
       });
+    });
+
+    peer.on('stream', (remoteStream) => {
+      // Handle remote audio stream if needed
+      console.log('Received remote audio stream');
     });
   
     connectionRef.current = peer;
   };
 
   const answerCall = () => {
+    console.log('Answering call from:', caller);
     setCallAccepted(true);
     const peer = new Peer({
       initiator: false,
@@ -139,7 +155,12 @@ const AudioCall = ({
     });
 
     peer.on('signal', (data) => {
+      console.log('Sending answer signal to:', caller);
       socket.emit('answerCall', { signal: data, to: caller });
+    });
+
+    peer.on('stream', (remoteStream) => {
+      console.log('Received remote audio stream in answer');
     });
 
     peer.signal(callerSignal);
@@ -148,9 +169,11 @@ const AudioCall = ({
   };
 
   const endCall = () => {
+    console.log('Ending call');
     setCallEnded(true);
     setCallAccepted(false);
     setReceivingCall(false);
+    setCallDuration(0);
     
     if (connectionRef.current) {
       connectionRef.current.destroy();
@@ -164,7 +187,9 @@ const AudioCall = ({
       clearInterval(callTimerRef.current);
     }
     
-    socket.emit('endCall', { to: recipientId });
+    // Notify the peer that call ended
+    const targetUser = callAccepted || receivingCall ? (caller || recipientId) : recipientId;
+    socket.emit('endCall', { to: targetUser });
     onClose();
   };
 
@@ -188,16 +213,7 @@ const AudioCall = ({
       className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
     >
       <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
-        <button 
-  onClick={() => {
-    // Simulate receiving a call
-    setReceivingCall(true);
-    setCaller("68789da4d0dce7a5c14d06e1");
-    console.log("Manually triggered call receive");
-  }}
->
-  Simulate Call
-</button>
+        
         {/* Header */}
         <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-8 text-center text-white">
           <div className="w-24 h-24 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
